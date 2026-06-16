@@ -9,7 +9,7 @@ describe('StatusBadge', () => {
     expect(screen.getByText(STATUS_LABEL[status])).toBeInTheDocument();
   });
 
-  it('renders a span element', () => {
+  it('renders a new span element', () => {
     const { container } = render(<StatusBadge status="applied" />);
     expect(container.querySelector('span')).toBeInTheDocument();
   });
