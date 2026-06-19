@@ -111,6 +111,9 @@ export interface Application {
   salaryType?: SalaryType | null;
   jobUrl?: string | null;
   source?: string | null;
+  recruiterName?: string | null;
+  recruiterEmail?: string | null;
+  recruiterPhone?: string | null;
   skills?: string[] | null;
   appliedDate: string | null;
   createdAt: string;

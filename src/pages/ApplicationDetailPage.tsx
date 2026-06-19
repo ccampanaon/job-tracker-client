@@ -18,6 +18,7 @@ import { useCompanyMap } from '@/features/companies/useCompanies';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Spinner } from '@/components/Spinner';
 import { formatDate, formatSalary } from '@/utils/format';
+import { SOURCE_LABEL } from '@/features/applications/applicationSchema';
 
 const INTERVIEW_DOT: Record<InterviewStatus, string> = {
   scheduled: 'bg-stage-interview',
@@ -79,7 +80,9 @@ export function ApplicationDetailPage() {
             <DetailItem label="Job type">{app.jobType}</DetailItem>
           )}
           {app.source && (
-            <DetailItem label="Source">{app.source}</DetailItem>
+            <DetailItem label="Source">
+              {SOURCE_LABEL[app.source as keyof typeof SOURCE_LABEL] ?? app.source}
+            </DetailItem>
           )}
           {salary && (
             <DetailItem label="Salary">{salary}</DetailItem>
@@ -87,6 +90,23 @@ export function ApplicationDetailPage() {
           {app.appliedDate && (
             <DetailItem label="Applied date">
               {formatDate(app.appliedDate)}
+            </DetailItem>
+          )}
+          {app.recruiterName && (
+            <DetailItem label="Recruiter">{app.recruiterName}</DetailItem>
+          )}
+          {app.recruiterEmail && (
+            <DetailItem label="Recruiter email">
+              <a href={`mailto:${app.recruiterEmail}`} className="text-brand hover:underline">
+                {app.recruiterEmail}
+              </a>
+            </DetailItem>
+          )}
+          {app.recruiterPhone && (
+            <DetailItem label="Recruiter phone">
+              <a href={`tel:${app.recruiterPhone}`} className="text-brand hover:underline">
+                {app.recruiterPhone}
+              </a>
             </DetailItem>
           )}
           {app.jobUrl && (

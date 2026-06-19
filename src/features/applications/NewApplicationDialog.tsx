@@ -1,5 +1,5 @@
-import { useState, KeyboardEvent } from 'react';
-import { useForm, useController, type Control } from 'react-hook-form';
+import { useState, useEffect, KeyboardEvent } from 'react';
+import { useForm, useController, type Control, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   type Application,
@@ -9,6 +9,7 @@ import {
   SALARY_TYPE_LABEL,
 } from '@/types';
 import {
+  useApplication,
   useCreateApplication,
   useUpdateApplication,
 } from '@/features/applications/useApplications';
@@ -16,6 +17,8 @@ import { useCompanies } from '@/features/companies/useCompanies';
 import {
   applicationSchema,
   LOCATION_TYPE_VALUES,
+  SOURCE_VALUES,
+  SOURCE_LABEL,
   type ApplicationFormValues,
 } from './applicationSchema';
 
@@ -104,6 +107,8 @@ export function ApplicationFormDialog({
   const { data: companies = [], isLoading: companiesLoading } = useCompanies();
   const isEdit = !!application;
 
+  const { data: fullApplication } = useApplication(application?.id ?? '');
+
   const sortedCompanies = [...companies].sort((a, b) => {
     if (!a.createdAt || !b.createdAt) return 0;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -113,6 +118,8 @@ export function ApplicationFormDialog({
     register,
     handleSubmit,
     control,
+    reset,
+    watch,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(applicationSchema),
@@ -121,7 +128,10 @@ export function ApplicationFormDialog({
           jobTitle: application.jobTitle,
           companyId: application.companyId,
           location: application.location ?? undefined,
-          source: application.source ?? '',
+          source: (application.source as unknown as FormValues['source']) ?? undefined,
+          recruiterName: application.recruiterName ?? '',
+          recruiterEmail: application.recruiterEmail ?? '',
+          recruiterPhone: application.recruiterPhone ?? '',
           jobDescription: application.jobDescription ?? '',
           jobType: application.jobType ?? undefined,
           salaryType: application.salaryType ?? undefined,
@@ -133,12 +143,38 @@ export function ApplicationFormDialog({
       : { skills: [] },
   });
 
-  const onSubmit = (values: FormValues) => {
+  useEffect(() => {
+    if (!fullApplication) return;
+    reset({
+      jobTitle: fullApplication.jobTitle,
+      companyId: fullApplication.companyId,
+      location: fullApplication.location ?? undefined,
+      source: (fullApplication.source as FormValues['source']) ?? undefined,
+      recruiterName: fullApplication.recruiterName ?? '',
+      recruiterEmail: fullApplication.recruiterEmail ?? '',
+      recruiterPhone: fullApplication.recruiterPhone ?? '',
+      jobDescription: fullApplication.jobDescription ?? '',
+      jobType: fullApplication.jobType ?? undefined,
+      salaryType: fullApplication.salaryType ?? undefined,
+      salaryMin: fullApplication.salaryMin ?? ('' as unknown as undefined),
+      salaryMax: fullApplication.salaryMax ?? ('' as unknown as undefined),
+      jobUrl: fullApplication.jobUrl ?? '',
+      skills: fullApplication.skills ?? [],
+    });
+  }, [fullApplication, reset]);
+
+  const selectedSource = watch('source');
+
+  const onSubmit: SubmitHandler<FormValues> = (values) => {
+    const isRecruiter = values.source === 'recruiter';
     const body = {
       jobTitle: values.jobTitle,
       companyId: values.companyId,
       location: values.location,
-      source: values.source || undefined,
+      source: values.source,
+      recruiterName: isRecruiter ? (values.recruiterName || undefined) : undefined,
+      recruiterEmail: isRecruiter ? (values.recruiterEmail || undefined) : undefined,
+      recruiterPhone: isRecruiter ? (values.recruiterPhone || undefined) : undefined,
       jobDescription: values.jobDescription || undefined,
       jobType: values.jobType,
       salaryMin: values.salaryMin,
@@ -234,12 +270,50 @@ export function ApplicationFormDialog({
             {/* Source */}
             <div>
               <label className="label">Source</label>
-              <input
-                className="field"
-                placeholder="LinkedIn, Referral…"
-                {...register('source')}
-              />
+              <select className="field" {...register('source')}>
+                <option value="">Select…</option>
+                {SOURCE_VALUES.map((s) => (
+                  <option key={s} value={s}>
+                    {SOURCE_LABEL[s]}
+                  </option>
+                ))}
+              </select>
             </div>
+
+            {/* Recruiter info — visible only when source is 'recruiter' */}
+            {selectedSource === 'recruiter' && (
+              <>
+                <div className="col-span-2">
+                  <label className="label">Recruiter name</label>
+                  <input
+                    className="field"
+                    placeholder="Jane Smith"
+                    {...register('recruiterName')}
+                  />
+                </div>
+                <div>
+                  <label className="label">Recruiter email</label>
+                  <input
+                    type="email"
+                    className="field"
+                    placeholder="jane@agency.com"
+                    {...register('recruiterEmail')}
+                  />
+                  {errors.recruiterEmail && (
+                    <p className="mt-1 text-xs text-stage-rejected">{errors.recruiterEmail.message}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="label">Recruiter phone</label>
+                  <input
+                    type="tel"
+                    className="field"
+                    placeholder="+1 555 000 0000"
+                    {...register('recruiterPhone')}
+                  />
+                </div>
+              </>
+            )}
 
             {/* Salary Type */}
             <div>

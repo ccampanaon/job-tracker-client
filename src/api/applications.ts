@@ -19,6 +19,9 @@ export interface CreateApplicationBody {
   salaryMax?: number;
   salaryType?: SalaryType;
   source?: string;
+  recruiterName?: string;
+  recruiterEmail?: string;
+  recruiterPhone?: string;
   skills?: string[];
   status?: ApplicationStatus;
   appliedDate?: string;
