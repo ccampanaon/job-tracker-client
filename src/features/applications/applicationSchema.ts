@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+export const ROLE_VALUES = ['Full Stack', 'Front End', 'Back End'] as const;
+
 export const JOB_TYPE_VALUES = ['Full-time', 'Part-time', 'Contract', 'Freelance', 'Internship'] as const;
 export const LOCATION_TYPE_VALUES = ['Remote', 'Onsite', 'Hybrid'] as const;
 export const SALARY_TYPE_VALUES = ['Hourly', 'Yearly'] as const;
@@ -30,6 +32,7 @@ export const applicationSchema = z.object({
   jobTitle: z.string().min(1, 'Job title is required'),
   companyId: z.string().min(1, 'Company is required'),
   location: z.enum(LOCATION_TYPE_VALUES).optional(),
+  role: z.enum(ROLE_VALUES).optional(),
   source: z.enum(SOURCE_VALUES).optional(),
   recruiterName: z.string().optional(),
   recruiterEmail: z.preprocess(

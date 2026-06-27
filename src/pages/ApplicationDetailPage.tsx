@@ -1,19 +1,27 @@
+import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   APPLICATION_STATUSES,
   STATUS_LABEL,
+  EVENT_TYPE_LABEL,
+  INTERVIEW_STATUS_LABEL,
+  INTERVIEW_LOCATION_LABEL,
   type ApplicationStatus,
   type InterviewStatus,
+  type InterviewLocation,
+  type EventType,
+  type ApplicationEvent,
+  type Interview,
 } from '@/types';
 import {
   useApplication,
   useUpdateApplication,
   useDeleteApplication,
 } from '@/features/applications/useApplications';
-import {
-  useInterviews,
-  useCreateInterview,
-} from '@/features/interviews/useInterviews';
+import { useInterviews } from '@/features/interviews/useInterviews';
+import { useEvents, useCreateEvent } from '@/features/events/useEvents';
+import { EventFormDialog } from '@/features/events/EventFormDialog';
+import { InterviewFormDialog } from '@/features/interviews/InterviewFormDialog';
 import { useCompanyMap } from '@/features/companies/useCompanies';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Spinner } from '@/components/Spinner';
@@ -26,6 +34,17 @@ const INTERVIEW_DOT: Record<InterviewStatus, string> = {
   passed: 'bg-stage-offer',
   failed: 'bg-stage-rejected',
   cancelled: 'bg-ink-300',
+};
+
+const EVENT_DOT: Record<EventType, string> = {
+  email:            'bg-stage-interview',
+  call:             'bg-yellow-400',
+  interview_invite: 'bg-purple-400',
+  offer:            'bg-stage-offer',
+  rejection:        'bg-stage-rejected',
+  note:             'bg-ink-300',
+  status_change:    'bg-brand',
+  other:            'bg-ink-300',
 };
 
 
@@ -45,7 +64,10 @@ export function ApplicationDetailPage() {
   const update = useUpdateApplication();
   const remove = useDeleteApplication();
   const { data: interviews } = useInterviews(id);
-  const createInterview = useCreateInterview(id);
+  const { data: events } = useEvents(id);
+  const createEvent = useCreateEvent(id);
+  const [eventDialog, setEventDialog] = useState<{ open: boolean; event?: ApplicationEvent }>({ open: false });
+  const [interviewDialog, setInterviewDialog] = useState<{ open: boolean; interview?: Interview }>({ open: false });
   const companyMap = useCompanyMap();
 
   if (isLoading || !app) return <Spinner />;
@@ -78,6 +100,9 @@ export function ApplicationDetailPage() {
           )}
           {app.jobType && (
             <DetailItem label="Job type">{app.jobType}</DetailItem>
+          )}
+          {app.role && (
+            <DetailItem label="Role">{app.role}</DetailItem>
           )}
           {app.source && (
             <DetailItem label="Source">
@@ -163,12 +188,18 @@ export function ApplicationDetailPage() {
           <select
             className="field max-w-[180px]"
             value={app.status}
-            onChange={(e) =>
-              update.mutate({
-                id: app.id,
-                body: { status: e.target.value as ApplicationStatus },
-              })
-            }
+            onChange={(e) => {
+              const newStatus = e.target.value as ApplicationStatus;
+              const previousStatus = app.status;
+              update.mutate({ id: app.id, body: { status: newStatus } });
+              createEvent.mutate({
+                eventType: 'status_change',
+                name: 'Status change',
+                date: new Date().toISOString().slice(0, 10),
+                previousStatus,
+                newStatus,
+              });
+            }}
           >
             {APPLICATION_STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -195,11 +226,7 @@ export function ApplicationDetailPage() {
           <h2 className="font-display text-lg font-semibold">Interviews</h2>
           <button
             className="btn-outline text-sm"
-            disabled={createInterview.isPending}
-            onClick={() => {
-              const title = prompt('Interview title (e.g. Technical round)');
-              if (title) createInterview.mutate({ title });
-            }}
+            onClick={() => setInterviewDialog({ open: true })}
           >
             + Add round
           </button>
@@ -212,26 +239,107 @@ export function ApplicationDetailPage() {
         ) : (
           <ol className="card divide-y divide-paper-edge overflow-hidden">
             {interviews?.map((iv) => (
-              <li key={iv.id} className="flex items-center gap-3 px-4 py-3.5">
+              <li
+                key={iv.id}
+                className="flex cursor-pointer items-center gap-3 px-4 py-3.5 hover:bg-paper transition-colors"
+                onClick={() => setInterviewDialog({ open: true, interview: iv })}
+              >
                 <span
                   className={`h-2.5 w-2.5 shrink-0 rounded-full ${INTERVIEW_DOT[iv.status]}`}
                 />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="font-medium text-ink-900">
                     Round {iv.roundNumber}: {iv.title}
                   </p>
-                  {iv.scheduledAt && (
-                    <p className="text-xs text-ink-400">
-                      {new Date(iv.scheduledAt).toLocaleString()}
-                    </p>
-                  )}
+                  <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
+                    {iv.scheduledAt && (
+                      <p className="text-xs text-ink-400">
+                        {formatDate(iv.scheduledAt)}
+                      </p>
+                    )}
+                    {iv.location && (
+                      <p className="text-xs text-ink-400">
+                        {INTERVIEW_LOCATION_LABEL[iv.location as InterviewLocation]}
+                      </p>
+                    )}
+                    {iv.interviewerName && (
+                      <p className="text-xs text-ink-400">{iv.interviewerName}</p>
+                    )}
+                  </div>
                 </div>
-                <span className="ml-auto text-xs capitalize text-ink-500">{iv.status}</span>
+                <span className="ml-auto shrink-0 text-xs text-ink-500">
+                  {INTERVIEW_STATUS_LABEL[iv.status as InterviewStatus]}
+                </span>
               </li>
             ))}
           </ol>
         )}
       </section>
+
+      {/* ── Activity ── */}
+      <section className="mt-6 mb-10">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold">Activity</h2>
+          <button
+            className="btn-outline text-sm"
+            onClick={() => setEventDialog({ open: true })}
+          >
+            + Log event
+          </button>
+        </div>
+
+        {(events?.length ?? 0) === 0 ? (
+          <p className="card px-4 py-8 text-center text-sm text-ink-400">
+            No activity logged yet.
+          </p>
+        ) : (
+          <ol className="card divide-y divide-paper-edge overflow-hidden">
+            {[...(events ?? [])]
+              .sort((a, b) => b.date.localeCompare(a.date))
+              .map((ev) => (
+                <li
+                  key={ev.id}
+                  className="flex cursor-pointer items-center gap-3 px-4 py-3.5 hover:bg-paper transition-colors"
+                  onClick={() => setEventDialog({ open: true, event: ev })}
+                >
+                  <span
+                    className={`h-2.5 w-2.5 shrink-0 rounded-full ${EVENT_DOT[ev.eventType]}`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-ink-900">
+                      {ev.eventType === 'status_change' && ev.previousStatus && ev.newStatus
+                        ? `${STATUS_LABEL[ev.previousStatus]} → ${STATUS_LABEL[ev.newStatus]}`
+                        : ev.name}
+                    </p>
+                    {ev.notes && (
+                      <p className="mt-0.5 truncate text-xs text-ink-400">{ev.notes}</p>
+                    )}
+                  </div>
+                  <div className="ml-auto flex shrink-0 flex-col items-end gap-0.5">
+                    <span className="text-xs text-ink-500">{EVENT_TYPE_LABEL[ev.eventType]}</span>
+                    <span className="text-xs text-ink-400">{formatDate(ev.date)}</span>
+                  </div>
+                </li>
+              ))}
+          </ol>
+        )}
+      </section>
+
+      {eventDialog.open && (
+        <EventFormDialog
+          appId={id}
+          event={eventDialog.event}
+          onClose={() => setEventDialog({ open: false })}
+        />
+      )}
+
+      {interviewDialog.open && (
+        <InterviewFormDialog
+          appId={id}
+          interview={interviewDialog.interview}
+          onClose={() => setInterviewDialog({ open: false })}
+        />
+      )}
     </div>
   );
 }

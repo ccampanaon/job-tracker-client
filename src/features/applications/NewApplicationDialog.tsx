@@ -16,6 +16,7 @@ import {
 import { useCompanies } from '@/features/companies/useCompanies';
 import {
   applicationSchema,
+  ROLE_VALUES,
   LOCATION_TYPE_VALUES,
   SOURCE_VALUES,
   SOURCE_LABEL,
@@ -128,6 +129,7 @@ export function ApplicationFormDialog({
           jobTitle: application.jobTitle,
           companyId: application.companyId,
           location: application.location ?? undefined,
+          role: (application.role as unknown as FormValues['role']) ?? undefined,
           source: (application.source as unknown as FormValues['source']) ?? undefined,
           recruiterName: application.recruiterName ?? '',
           recruiterEmail: application.recruiterEmail ?? '',
@@ -149,6 +151,7 @@ export function ApplicationFormDialog({
       jobTitle: fullApplication.jobTitle,
       companyId: fullApplication.companyId,
       location: fullApplication.location ?? undefined,
+      role: (fullApplication.role as unknown as FormValues['role']) ?? undefined,
       source: (fullApplication.source as FormValues['source']) ?? undefined,
       recruiterName: fullApplication.recruiterName ?? '',
       recruiterEmail: fullApplication.recruiterEmail ?? '',
@@ -171,6 +174,7 @@ export function ApplicationFormDialog({
       jobTitle: values.jobTitle,
       companyId: values.companyId,
       location: values.location,
+      role: values.role,
       source: values.source,
       recruiterName: isRecruiter ? (values.recruiterName || undefined) : undefined,
       recruiterEmail: isRecruiter ? (values.recruiterEmail || undefined) : undefined,
@@ -211,7 +215,7 @@ export function ApplicationFormDialog({
         <form onSubmit={handleSubmit(onSubmit)} className="overflow-y-auto px-6 py-5">
           <div className="grid grid-cols-2 gap-4">
             {/* Job Title */}
-            <div className="col-span-2">
+            <div>
               <label className="label">Job title</label>
               <input
                 className="field"
@@ -221,6 +225,17 @@ export function ApplicationFormDialog({
               {errors.jobTitle && (
                 <p className="mt-1 text-xs text-stage-rejected">{errors.jobTitle.message}</p>
               )}
+            </div>
+
+            {/* Role */}
+            <div>
+              <label className="label">Role</label>
+              <select className="field" {...register('role')}>
+                <option value="">Select…</option>
+                {ROLE_VALUES.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
             </div>
 
             {/* Company */}

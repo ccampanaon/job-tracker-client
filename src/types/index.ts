@@ -7,6 +7,8 @@ export type ApplicationStatus =
   | 'offer'
   | 'rejected';
 
+export type RoleType = 'Full Stack' | 'Front End' | 'Back End';
+
 export type JobType =
   | 'Full-time'
   | 'Part-time'
@@ -72,6 +74,28 @@ export type InterviewStatus =
   | 'failed'
   | 'cancelled';
 
+export const INTERVIEW_STATUSES: InterviewStatus[] = [
+  'scheduled', 'completed', 'passed', 'failed', 'cancelled',
+];
+
+export const INTERVIEW_STATUS_LABEL: Record<InterviewStatus, string> = {
+  scheduled: 'Pending',
+  completed: 'Done',
+  passed:    'Passed',
+  failed:    'Failed',
+  cancelled: 'Cancelled',
+};
+
+export type InterviewLocation = 'phone' | 'video_call' | 'in_person';
+
+export const INTERVIEW_LOCATIONS: InterviewLocation[] = ['phone', 'video_call', 'in_person'];
+
+export const INTERVIEW_LOCATION_LABEL: Record<InterviewLocation, string> = {
+  phone:      'Phone',
+  video_call: 'Video call',
+  in_person:  'In person',
+};
+
 export interface User {
   id: string;
   email: string;
@@ -94,7 +118,13 @@ export interface Interview {
   title: string;
   status: InterviewStatus;
   scheduledAt: string | null;
+  location?: InterviewLocation | null;
+  callUrl?: string | null;
+  interviewerName?: string | null;
+  interviewerEmail?: string | null;
   notes?: string | null;
+  questionsAsked?: string | null;
+  codeChallenge?: string | null;
 }
 
 export interface Application {
@@ -110,6 +140,7 @@ export interface Application {
   salaryMax?: number | null;
   salaryType?: SalaryType | null;
   jobUrl?: string | null;
+  role?: RoleType | null;
   source?: string | null;
   recruiterName?: string | null;
   recruiterEmail?: string | null;
@@ -130,4 +161,42 @@ export interface Page<T> {
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+}
+
+export type EventType =
+  | 'email'
+  | 'call'
+  | 'interview_invite'
+  | 'offer'
+  | 'rejection'
+  | 'note'
+  | 'status_change'
+  | 'other';
+
+// status_change is system-generated — excluded from the user-facing form dropdown
+export const EVENT_TYPES: EventType[] = [
+  'email', 'call', 'interview_invite', 'offer', 'rejection', 'note', 'other',
+];
+
+export const EVENT_TYPE_LABEL: Record<EventType, string> = {
+  email: 'Email',
+  call: 'Call',
+  interview_invite: 'Interview invite',
+  offer: 'Offer',
+  rejection: 'Rejection',
+  note: 'Note',
+  status_change: 'Status change',
+  other: 'Other',
+};
+
+export interface ApplicationEvent {
+  id: string;
+  applicationId: string;
+  name: string;
+  eventType: EventType;
+  date: string;
+  notes?: string | null;
+  previousStatus?: ApplicationStatus | null;
+  newStatus?: ApplicationStatus | null;
+  createdAt: string;
 }

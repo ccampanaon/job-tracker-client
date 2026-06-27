@@ -18,4 +18,5 @@ export const qk = {
   application: (id: string) => ['application', id] as const,
   companies: (search?: string) => ['companies', search ?? ''] as const,
   interviews: (appId: string) => ['interviews', appId] as const,
+  events: (appId: string) => ['events', appId] as const,
 };
