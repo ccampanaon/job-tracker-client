@@ -184,7 +184,7 @@ function CreateFields({
   return (
     <div className="space-y-4">
       <SharedPreInterviewFields
-        register={register as ReturnType<typeof useForm>['register']}
+        register={register as unknown as ReturnType<typeof useForm>['register']}
         errors={errors}
         watchedLocation={watchedLocation}
         scheduledAtMin={today()}
@@ -205,7 +205,7 @@ function EditFields({
   return (
     <div className="space-y-4">
       <SharedPreInterviewFields
-        register={register as ReturnType<typeof useForm>['register']}
+        register={register as unknown as ReturnType<typeof useForm>['register']}
         errors={errors}
         watchedLocation={watchedLocation}
         scheduledAtMin={undefined}
