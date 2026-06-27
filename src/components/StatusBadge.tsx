@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { STATUS_LABEL, type ApplicationStatus } from '@/types';
 
 const styles: Record<ApplicationStatus, string> = {
+  not_selected: 'bg-violet-50 text-stage-not_selected',
   applied: 'bg-gray-100 text-stage-applied',
   reviewing: 'bg-amber-50 text-stage-reviewing',
   interview: 'bg-brand-soft text-stage-interview',

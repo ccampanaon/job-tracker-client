@@ -1,6 +1,7 @@
 // Mirrors the NestJS backend entities. Keep in sync with the API.
 
 export type ApplicationStatus =
+  | 'not_selected'
   | 'applied'
   | 'reviewing'
   | 'interview'
@@ -52,6 +53,7 @@ export const LOCATION_TYPE_LABEL: Record<LocationType, string> = {
 };
 
 export const APPLICATION_STATUSES: ApplicationStatus[] = [
+  'not_selected',
   'applied',
   'reviewing',
   'interview',
@@ -60,6 +62,7 @@ export const APPLICATION_STATUSES: ApplicationStatus[] = [
 ];
 
 export const STATUS_LABEL: Record<ApplicationStatus, string> = {
+  not_selected: 'Not selected',
   applied: 'Applied',
   reviewing: 'Reviewing',
   interview: 'Interview',

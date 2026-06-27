@@ -31,6 +31,7 @@ export default {
           interview: '#4338ca',
           offer: '#15803d',
           rejected: '#be123c',
+          not_selected: '#6d28d9',
         },
       },
       boxShadow: {

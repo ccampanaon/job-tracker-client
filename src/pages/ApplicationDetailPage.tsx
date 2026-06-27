@@ -68,6 +68,7 @@ export function ApplicationDetailPage() {
   const createEvent = useCreateEvent(id);
   const [eventDialog, setEventDialog] = useState<{ open: boolean; event?: ApplicationEvent }>({ open: false });
   const [interviewDialog, setInterviewDialog] = useState<{ open: boolean; interview?: Interview }>({ open: false });
+  const [statusModal, setStatusModal] = useState<{ newStatus: ApplicationStatus; note: string } | null>(null);
   const companyMap = useCompanyMap();
 
   if (isLoading || !app) return <Spinner />;
@@ -190,15 +191,8 @@ export function ApplicationDetailPage() {
             value={app.status}
             onChange={(e) => {
               const newStatus = e.target.value as ApplicationStatus;
-              const previousStatus = app.status;
-              update.mutate({ id: app.id, body: { status: newStatus } });
-              createEvent.mutate({
-                eventType: 'status_change',
-                name: 'Status change',
-                date: new Date().toISOString().slice(0, 10),
-                previousStatus,
-                newStatus,
-              });
+              if (newStatus === app.status) return;
+              setStatusModal({ newStatus, note: '' });
             }}
           >
             {APPLICATION_STATUSES.map((s) => (
@@ -339,6 +333,56 @@ export function ApplicationDetailPage() {
           interview={interviewDialog.interview}
           onClose={() => setInterviewDialog({ open: false })}
         />
+      )}
+
+      {statusModal && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-ink-900/30 p-4"
+          onClick={() => setStatusModal(null)}
+        >
+          <div
+            className="card w-full max-w-md p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="font-display text-lg font-semibold">
+              Move to <span className="text-brand">{STATUS_LABEL[statusModal.newStatus]}</span>
+            </h2>
+            <p className="mt-1 text-sm text-ink-500">
+              Optionally add a note about this status change.
+            </p>
+            <textarea
+              className="field mt-4 resize-none"
+              rows={3}
+              placeholder="e.g. Recruiter sent rejection email…"
+              value={statusModal.note}
+              onChange={(e) => setStatusModal((prev) => prev && { ...prev, note: e.target.value })}
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <button className="btn-outline" onClick={() => setStatusModal(null)}>
+                Cancel
+              </button>
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  const previousStatus = app.status;
+                  const { newStatus, note } = statusModal;
+                  update.mutate({ id: app.id, body: { status: newStatus } });
+                  createEvent.mutate({
+                    eventType: 'status_change',
+                    name: 'Status change',
+                    date: new Date().toISOString().slice(0, 10),
+                    previousStatus,
+                    newStatus,
+                    notes: note.trim() || undefined,
+                  });
+                  setStatusModal(null);
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
