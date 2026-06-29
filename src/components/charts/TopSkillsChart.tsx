@@ -7,8 +7,10 @@ import {
   Tooltip,
   ResponsiveContainer,
   LabelList,
+  Cell,
 } from 'recharts';
 import type { LabelCount } from '@/features/dashboard/dashboardTypes';
+import { paletteColor } from './chartColors';
 
 interface Props {
   data: LabelCount[];
@@ -58,12 +60,15 @@ export function TopSkillsChart({ data }: Props) {
               }}
               formatter={(value) => [value, 'Appearances']}
             />
-            <Bar dataKey="count" fill="#4338ca" radius={[0, 4, 4, 0]} maxBarSize={32}>
+            <Bar dataKey="count" radius={[0, 4, 4, 0]} maxBarSize={32}>
               <LabelList
                 dataKey="count"
                 position="right"
                 style={{ fontSize: 11, fill: '#5b5f6e', fontWeight: 600 }}
               />
+              {data.map((_, i) => (
+                <Cell key={i} fill={paletteColor(i)} />
+              ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>

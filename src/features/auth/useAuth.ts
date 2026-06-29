@@ -17,7 +17,7 @@ export function useLogin() {
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
       });
-      navigate('/');
+      navigate('/dashboard');
     },
   });
 }
@@ -33,7 +33,7 @@ export function useRegister() {
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
       });
-      navigate('/');
+      navigate('/dashboard');
     },
   });
 }
