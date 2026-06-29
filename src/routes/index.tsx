@@ -5,6 +5,7 @@ import { AuthPage } from '@/pages/AuthPage';
 import { ListPage } from '@/pages/ListPage';
 import { CompaniesPage } from '@/pages/CompaniesPage';
 import { ApplicationDetailPage } from '@/pages/ApplicationDetailPage';
+import { DashboardPage } from '@/pages/DashboardPage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <AuthPage /> },
@@ -14,6 +15,7 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
+          { path: '/dashboard', element: <DashboardPage /> },
           { path: '/', element: <ListPage /> },
           { path: '/companies', element: <CompaniesPage /> },
           { path: '/applications/:id', element: <ApplicationDetailPage /> },

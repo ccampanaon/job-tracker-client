@@ -4,6 +4,17 @@ import { useAuthStore } from '@/store/auth';
 import { useLogout, useRestoreSession } from '@/features/auth/useAuth';
 import { Spinner } from '@/components/Spinner';
 
+function IconDashboard() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  );
+}
+
 function IconTable() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -78,9 +89,12 @@ export function AppLayout() {
           </p>
           <ul className="space-y-1">
             <li>
+              <SidebarLink to="/dashboard" icon={<IconDashboard />} label="Dashboard" />
+            </li>
+            <li>
               <SidebarLink to="/" icon={<IconTable />} label="Applications" />
             </li>
-<li>
+            <li>
               <SidebarLink to="/companies" icon={<IconBuilding />} label="Companies" />
             </li>
           </ul>

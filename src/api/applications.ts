@@ -1,6 +1,8 @@
 import { api } from './client';
 import type { Application, ApplicationStatus, JobType, LocationType, SalaryType, Page } from '@/types';
 
+const FETCH_ALL_CAP = 500;
+
 export interface ListParams {
   status?: ApplicationStatus;
   search?: string;
@@ -48,3 +50,17 @@ export const applicationsApi = {
   remove: (id: string) =>
     api.delete(`/applications/${id}`).then((r) => r.data),
 };
+
+export async function fetchAllApplications(): Promise<Application[]> {
+  const all: Application[] = [];
+  let cursor: string | null = null;
+
+  do {
+    const page = await applicationsApi.list({ limit: 100, cursor });
+    all.push(...page.items);
+    cursor = page.nextCursor;
+    if (all.length >= FETCH_ALL_CAP) break;
+  } while (cursor);
+
+  return all;
+}
